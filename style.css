@@ -1,0 +1,348 @@
+/* Reset & biến màu chủ đạo */
+:root {
+    --vang-nau: #c48b3c;
+    --xanh-duong: #1e73be;
+    --do: #c83737;
+    --den: #1f1f1f;
+    --xam-nhat: #f6f7fb;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #ffffff;
+    color: var(--den);
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+body.fullscreen {
+    background: #000;
+}
+
+.container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body.fullscreen .container {
+    width: 100vw;
+    height: 100vh;
+}
+
+body.fullscreen header {
+    display: none;
+}
+
+body.fullscreen main {
+    grid-template-columns: 1fr;
+    padding: 0;
+    gap: 0;
+}
+
+body.fullscreen .controls {
+    display: none;
+}
+
+body.fullscreen .canvas-wrap {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Header */
+header {
+    padding: 20px 24px;
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 3px solid var(--vang-nau);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+}
+
+body.fullscreen header {
+    display: none;
+}
+
+.logo {
+    height: 56px;
+    width: auto;
+    object-fit: contain;
+}
+
+.heading-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+h1 {
+    color: var(--xanh-duong);
+    font-size: 1.9rem;
+    letter-spacing: 0.3px;
+}
+
+.tagline {
+    color: var(--do);
+    font-size: 0.95rem;
+    font-weight: 900;
+}
+
+/* Main */
+main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body.fullscreen main {
+    grid-template-columns: 1fr;
+    padding: 0;
+    gap: 0;
+}
+
+/* Control panel */
+.controls {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.controls-row {
+    display: flex;
+    gap: 10px;
+}
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 10px;
+    background: #fafafa;
+}
+
+.field span {
+    font-size: 0.9rem;
+    color: #4a4a4a;
+}
+
+.field input {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.1);
+    font-size: 1rem;
+    outline: none;
+}
+
+.field input:focus {
+    border-color: var(--xanh-duong);
+    box-shadow: 0 0 0 3px rgba(30, 115, 190, 0.15);
+}
+
+.btn {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.btn.primary {
+    background: var(--xanh-duong);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(30, 115, 190, 0.25);
+}
+
+.btn.primary:hover {
+    filter: brightness(1.05);
+}
+
+.btn.ghost {
+    background: #fff;
+    color: var(--den);
+    border-color: rgba(0,0,0,0.12);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.panel {
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 10px;
+    padding: 12px;
+    background: #fff;
+}
+
+.winners-panel h3 {
+    margin-bottom: 8px;
+    color: var(--xanh-duong);
+}
+
+.winners-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.winner-zone {
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: #fafafa;
+}
+
+.winner-zone h4 {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+    color: var(--do);
+}
+
+.winner-zone ul {
+    list-style: none;
+    padding-left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.winner-chip {
+    background: rgba(196, 139, 60, 0.12);
+    color: #8a5a1f;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+
+.canvas-wrap {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: none;
+    position: relative;
+}
+
+body.fullscreen .canvas-wrap {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Countdown overlay */
+.countdown-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    transition: opacity 0.2s ease;
+}
+
+.countdown-overlay.hidden {
+    display: none;
+}
+
+.countdown-number {
+    font-size: 120px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+    animation: countdownPulse 0.6s ease-out;
+}
+
+@keyframes countdownPulse {
+    0% {
+        transform: scale(1.4);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Canvas */
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 20%, rgba(196, 139, 60, 0.08), transparent 25%),
+                radial-gradient(circle at 80% 30%, rgba(30, 115, 190, 0.08), transparent 22%),
+                radial-gradient(circle at 50% 80%, rgba(200, 55, 55, 0.08), transparent 28%),
+                linear-gradient(to bottom, #fdfdfd 0%, #f4f7fb 100%);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: block;
+}
+
+body.fullscreen #gameCanvas {
+    background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 50%, #90EE90 100%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+        padding: 16px;
+    }
+
+    .logo {
+        height: 48px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    main {
+        padding: 12px;
+        grid-template-columns: 1fr;
+    }
+
+    .canvas-wrap {
+        min-height: 320px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        height: 38px;
+    }
+
+    h1 {
+        font-size: 1.3rem;
+    }
+}

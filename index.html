@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giới Trẻ Giáo Xứ Tam Hải | Đua Vịt</title>
+    <link rel="icon" href="img/logo gioi tre_tieuchuan.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="img/logo gioi tre_tieuchuan.png" alt="Logo Giới Trẻ Giáo Xứ Tam Hải" class="logo">
+            <div class="heading-group">
+                <h1>Giới Trẻ Giáo Xứ Tam Hải</h1>
+                <p class="tagline">Sân chơi đua vịt</p>
+            </div>
+        </header>
+        <main>
+            <section class="controls">
+                <div class="controls-row">
+                    <button id="startBtn" class="btn primary">Bắt đầu</button>
+                    <button id="resetBtn" class="btn ghost">Làm mới</button>
+                    <button id="fullscreenBtn" class="btn ghost" title="Phóng to màn hình">⛶</button>
+                </div>
+                <div class="controls-grid">
+                    <label class="field">
+                        <span>Tổng thời gian đua (giây)</span>
+                        <input type="number" id="totalRaceTime" min="10" max="300" value="60">
+                    </label>
+                    <label class="field">
+                        <span>Tổng số vịt</span>
+                        <input type="number" id="totalDucks" min="1" max="300" value="180">
+                    </label>
+                    <label class="field">
+                        <span>Số người thắng mỗi mốc</span>
+                        <input type="number" id="winnersPerZone" min="1" max="10" value="5">
+                    </label>
+                    <label class="field">
+                        <span>Số mốc cán đích</span>
+                        <input type="number" id="finishZones" min="1" max="5" value="4">
+                    </label>
+                </div>
+            </section>
+            <section class="canvas-wrap">
+                <canvas id="gameCanvas"></canvas>
+                <div id="countdownOverlay" class="countdown-overlay hidden">
+                    <div class="countdown-number">3</div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
