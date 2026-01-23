@@ -49,6 +49,17 @@ class Duck {
                 Duck.duckImage.onload = () => { Duck.duckImageLoaded = true; };
             }
         }
+        
+        // Ảnh logo tiêu chuẩn
+        static logoImage = null;
+        static logoImageLoaded = false;
+        static loadLogoImage() {
+            if (!Duck.logoImage) {
+                Duck.logoImage = new window.Image();
+                Duck.logoImage.src = 'img/logo gioi tre_tieuchuan.png';
+                Duck.logoImage.onload = () => { Duck.logoImageLoaded = true; };
+            }
+        }
     // Enum chiến thuật
     static STRATEGIES = {
         EARLY_LEADER: 'early-leader',
@@ -327,7 +338,7 @@ class ScrollingWaterBackground {
         this.image.src = imagePath;
         this.imageLoaded = false;
         this.offset = 0;
-        this.scrollSpeed = 60; // pixels per second (right to left)
+        this.scrollSpeed = 150; // pixels per second (right to left)
 
         this.image.onload = () => {
             this.imageLoaded = true;
@@ -393,13 +404,14 @@ class WaveLayers {
         
         // 3 wave layers with different speeds
         this.waves = [
-            { offset: 0, scrollSpeed: 50, y: 0, height: 60 },   // Top wave (sát bờ)
-            { offset: 0, scrollSpeed: 70, y: 0, height: 60 },   // Middle wave (ở giữa nước)
-            { offset: 0, scrollSpeed: 45, y: 0, height: 60 }    // Bottom wave (ở dưới cùng)
+            { offset: 0, scrollSpeed: 120, yRatio: -0.3, scale: 0.5 },    // Top wave (sát bờ) - nhỏ hơn
+            { offset: 0, scrollSpeed: 100, yRatio: 0, scale: 1.0 },     // Middle wave (ở giữa) - chuẩn
+            { offset: 0, scrollSpeed: 120, yRatio: 0.85, scale: 0.9 }     // Bottom wave (ở dưới) - vừa
         ];
 
         this.image.onload = () => {
             this.imageLoaded = true;
+            console.log('Wave image loaded:', this.image.width, 'x', this.image.height);
         };
         this.image.onerror = () => {
             console.warn('Failed to load wave image:', imagePath);
@@ -413,51 +425,59 @@ class WaveLayers {
         for (const wave of this.waves) {
             wave.offset -= wave.scrollSpeed * deltaTime;
             
-            // Reset offset when it goes beyond image width
-            if (this.image.width && wave.offset <= -this.image.width) {
-                wave.offset = 0;
+            // QUAN TRỌNG: Reset dựa trên waveWidth đã scale, không phải image.width gốc
+            const waveWidth = this.image.width * wave.scale;
+            
+            // Reset offset khi vượt qua một chu kỳ hoàn chỉnh
+            if (wave.offset <= -waveWidth) {
+                wave.offset += waveWidth; // Cộng thêm thay vì reset về 0
             }
         }
     }
 
     draw(ctx, canvasWidth, waterYStart, waterHeight) {
-        if (!this.imageLoaded) return;
+        if (!this.imageLoaded || !this.image.width || !this.image.height) return;
         
-        const imageWidth = this.image.width;
-        const imageHeight = this.image.height;
-        
-        // Wave positions: top (near shore), middle, bottom
-        const wavePositions = [
-            waterYStart,                              // Top wave
-            waterYStart + waterHeight * 0.5,          // Middle wave
-            waterYStart + waterHeight - 60            // Bottom wave
-        ];
+        const originalWidth = this.image.width;
+        const originalHeight = this.image.height;
 
         ctx.save();
 
         for (let waveIndex = 0; waveIndex < this.waves.length; waveIndex++) {
             const wave = this.waves[waveIndex];
-            const y = wavePositions[waveIndex];
             
-            // Draw first copy
-            ctx.drawImage(
-                this.image,
-                Math.floor(wave.offset),
-                Math.floor(y),
-                imageWidth,
-                wave.height
-            );
+            // Tính toán kích thước với tỷ lệ gốc (không bị bóp méo)
+            const waveHeight = originalHeight * wave.scale;
+            const waveWidth = originalWidth * wave.scale;
             
-            // Draw second copy for seamless scrolling
-            ctx.drawImage(
-                this.image,
-                Math.floor(wave.offset + imageWidth),
-                Math.floor(y),
-                imageWidth,
-                wave.height
-            );
+            // Vị trí Y dựa trên tỷ lệ trong vùng nước
+            const y = waterYStart + waterHeight * wave.yRatio;
+            
+            // Độ mờ khác nhau cho mỗi lớp sóng (tạo chiều sâu)
+            const alphas = [0.7, 0.85, 0.6]; // Top, Middle, Bottom
+            ctx.globalAlpha = alphas[waveIndex];
+            
+            // Số lần lặp lại cần thiết để phủ kín chiều ngang
+            const repeatCount = Math.ceil(canvasWidth / waveWidth) + 2;
+            
+            // Vẽ nhiều bản sao để phủ kín màn hình
+            for (let i = 0; i < repeatCount; i++) {
+                const x = wave.offset + i * waveWidth;
+                
+                // Chỉ vẽ nếu nằm trong viewport (tối ưu performance)
+                if (x + waveWidth >= 0 && x <= canvasWidth) {
+                    ctx.drawImage(
+                        this.image, 
+                        x, 
+                        y, 
+                        waveWidth, 
+                        waveHeight
+                    );
+                }
+            }
         }
 
+        ctx.globalAlpha = 1.0;
         ctx.restore();
     }
 
@@ -1009,6 +1029,9 @@ class Game {
         this.waveLayers.draw(ctx, this.width, WATER_Y_START, WATER_HEIGHT);
         drawStartLine(ctx);
         drawFinishLine(ctx);
+        
+        // Draw logo in top left corner
+        this.drawLogo(ctx);
 
         // Draw ducks
         const ducks = this.raceManager.ducks;
@@ -1058,18 +1081,37 @@ class Game {
     }
 
 
+    // Draw logo in top left corner
+    drawLogo(ctx) {
+        Duck.loadLogoImage();
+        const logo = Duck.logoImage;
+        const ready = Duck.logoImageLoaded && logo && logo.complete;
+        
+        if (ready) {
+            ctx.save();
+            // Vẽ logo với kích thước phù hợp (chiều cao ~60px)
+            const logoHeight = 100;
+            const logoWidth = (logo.width / logo.height) * logoHeight;
+            const logoX = 15; // Cách lề trái 15px
+            const logoY = 15; // Cách lề trên 15px
+            
+            ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+            ctx.restore();
+        }
+    }
+
     // Draw winner podium in grass area (top left)
     drawWinnerPodium(ctx, winners) {
         ctx.save();
         
-        // Title with background
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-        ctx.fillRect(WINNER_PODIUM_X - 5, WINNER_PODIUM_Y - 2, 250, 28);
-        ctx.font = 'bold 20px Arial';
-        ctx.fillStyle = '#1976d2';
+        // Chữ ở trên giữa canvas
+
+        ctx.font = 'bold 25px Arial';
+
+        ctx.fillStyle = '#e60a0aff';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText('VỊT VỀ ĐÍCH', WINNER_PODIUM_X, WINNER_PODIUM_Y);
+        ctx.fillText('CHÚC MỪNG:', WINNER_PODIUM_X + 100, WINNER_PODIUM_Y);
         
         ctx.restore();
     }
