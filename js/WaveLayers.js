@@ -10,7 +10,7 @@ export class ScrollingWaterBackground {
         this.image.src = imagePath;
         this.imageLoaded = false;
         this.offset = 0;
-        this.scrollSpeed = 150;
+        this.scrollSpeed = 50;
 
         this.image.onload = () => {
             this.imageLoaded = true;
@@ -71,8 +71,8 @@ export class WaveLayers {
         
         this.waves = [
             { offset: 0, scrollSpeed: 120, yRatio: -0.3, scale: 0.5 },
-            { offset: 0, scrollSpeed: 100, yRatio: 0, scale: 1.0 },
-            { offset: 0, scrollSpeed: 120, yRatio: 0.85, scale: 0.9 }
+            { offset: 0, scrollSpeed: 150, yRatio: 0, scale: 1.0 },
+            { offset: 0, scrollSpeed: 100, yRatio: 0.85, scale: 0.9 }
         ];
 
         this.image.onload = () => {

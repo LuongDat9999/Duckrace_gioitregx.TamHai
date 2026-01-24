@@ -394,6 +394,28 @@ export class GameEngine {
         LAYOUT.update(width, height);
         this.checkpointManager.setCanvasWidth(width);
         
+        // Redistribute duck lanes để trải dài toàn bộ sông
+        if (this.ducks.length > 0) {
+            // Sort ducks theo Y position hiện tại để giữ nguyên thứ tự tương đối
+            const sortedDucks = [...this.ducks].sort((a, b) => a.y - b.y);
+            const lanes = this.#buildLanePositions(this.ducks.length);
+            
+            // Gán lại Y theo thứ tự từ trên xuống dưới
+            for (let i = 0; i < sortedDucks.length; i++) {
+                sortedDucks[i].y = lanes[i];
+                
+                // Nếu vịt đang winning, cập nhật target Y
+                if (sortedDucks[i].state === 'winning') {
+                    const podiumPos = this.winnerManager.calculatePodiumPosition(
+                        this.winnerManager.getWinners().findIndex(w => w.id === sortedDucks[i].id)
+                    );
+                    if (podiumPos) {
+                        sortedDucks[i].targetY = podiumPos.y;
+                    }
+                }
+            }
+        }
+        
         if (!this.running) {
             this.render();
         }
@@ -419,8 +441,5 @@ export class GameEngine {
             winnersPerCheckpoint: GAME_CONFIG.WINNERS_PER_CHECKPOINT,
             totalRaceTime: GAME_CONFIG.TOTAL_RACE_TIME
         });
-        
-        // Recalculate duck speeds với tốc độ mới
-        this.initDucks(GAME_CONFIG.TOTAL_DUCKS);
     }
 }

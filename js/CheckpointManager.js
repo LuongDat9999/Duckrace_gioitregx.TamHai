@@ -66,14 +66,16 @@ export class CheckpointManager {
         // Update game time
         this.gameTime += deltaTime;
         
-        // Check if any checkpoint should appear based on scheduled time
-        for (const checkpoint of this.checkpoints) {
-            if (!checkpoint.visible && !checkpoint.animating && 
-                this.gameTime >= checkpoint.scheduledTime) {
-                checkpoint.visible = true;
-                checkpoint.animating = true;
-                checkpoint.isActive = true;
-                checkpoint.animationProgress = 0;
+        // Chỉ kích hoạt checkpoint tiếp theo (currentCheckpointIndex) khi đến thời gian
+        // Tránh các checkpoint cũ xuất hiện lại
+        if (this.currentCheckpointIndex < this.checkpoints.length) {
+            const nextCheckpoint = this.checkpoints[this.currentCheckpointIndex];
+            if (!nextCheckpoint.visible && !nextCheckpoint.animating && 
+                this.gameTime >= nextCheckpoint.scheduledTime) {
+                nextCheckpoint.visible = true;
+                nextCheckpoint.animating = true;
+                nextCheckpoint.isActive = true;
+                nextCheckpoint.animationProgress = 0;
             }
         }
         
@@ -94,7 +96,7 @@ export class CheckpointManager {
                 }
             }
             
-            // Slide out animation
+            // Slide out animation (từ phải sang trái khi đủ người)
             if (checkpoint.slidingOut) {
                 checkpoint.slideOutProgress += deltaTime / GAME_CONFIG.CHECKPOINT_SLIDE_DURATION;
                 
@@ -104,6 +106,7 @@ export class CheckpointManager {
                     checkpoint.slidingOut = false;
                 } else {
                     const eased = this.#easeInCubic(checkpoint.slideOutProgress);
+                    // Slide out về phía bên trái màn hình
                     const endX = -GAME_CONFIG.CHECKPOINT_APPEAR_OFFSET;
                     checkpoint.currentX = checkpoint.targetX + (endX - checkpoint.targetX) * eased;
                 }
@@ -124,11 +127,18 @@ export class CheckpointManager {
         
         checkpoint.winners.push(duckId);
         
-        // Nếu checkpoint đủ người, chuyển sang checkpoint tiếp theo
+        // Nếu checkpoint đủ người, bắt đầu slide out (trừ checkpoint cuối)
         if (checkpoint.winners.length >= this.winnersPerCheckpoint) {
+            // Nếu không phải checkpoint cuối, slide out
+            if (!checkpoint.isFinal) {
+                checkpoint.slidingOut = true;
+                checkpoint.slideOutProgress = 0;
+                checkpoint.isActive = false;
+            }
+            
             this.currentCheckpointIndex++;
             
-            // Kích hoạt checkpoint tiếp theo nếu chưa phải checkpoint cuối
+            // Kích hoạt checkpoint tiếp theo nếu có
             if (this.currentCheckpointIndex < this.checkpoints.length) {
                 this.activateNextCheckpoint();
             }
@@ -184,7 +194,7 @@ export class CheckpointManager {
             ctx.shadowOffsetX = -2;
             
             // Màu sắc khác nhau cho checkpoint cuối
-            const primaryColor = checkpoint.isFinal ? '#FFD700' : '#4CAF50';
+            const primaryColor = checkpoint.isFinal ? '#FFD700' : '#ec1f1fff';
             const secondaryColor = '#fff';
             
             // Draw checkered pattern
@@ -204,8 +214,8 @@ export class CheckpointManager {
             ctx.strokeRect(x - w/2, y, w, h);
             
             // Label
-            const labelText = checkpoint.isFinal ? 'FINAL' : `CP${checkpoint.index + 1}`;
-            const labelBg = checkpoint.isFinal ? 'rgba(255, 215, 0, 0.9)' : 'rgba(76, 175, 80, 0.9)';
+            const labelText = checkpoint.isFinal ? 'FINAL' : `${checkpoint.index + 1}`;
+            const labelBg = checkpoint.isFinal ? 'rgba(255, 215, 0, 0.9)' : 'rgba(235, 121, 7, 0.9)';
             
             ctx.fillStyle = labelBg;
             ctx.fillRect(x - 30, y - 35, 60, 28);

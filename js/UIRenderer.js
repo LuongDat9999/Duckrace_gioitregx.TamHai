@@ -268,18 +268,14 @@ export class UIRenderer {
             
             // Winner number
             ctx.fillStyle = '#FFD700';
-            ctx.font = 'bold 32px Arial';
+            ctx.font = 'bold 40px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.lineWidth = 3;
             ctx.strokeText(winner.id.toString(), x + itemWidth / 2, y + itemHeight / 2 - 10);
             ctx.fillText(winner.id.toString(), x + itemWidth / 2, y + itemHeight / 2 - 10);
             
-            // Winner name
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 12px Arial';
-            ctx.fillText(winner.name || `Vịt ${winner.id}`, x + itemWidth / 2, y + itemHeight / 2 + 20);
+            // Winner nam
         }
         
         // Close button

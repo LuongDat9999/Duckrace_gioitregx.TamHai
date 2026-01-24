@@ -37,7 +37,8 @@ export const GAME_CONFIG = {
     
     // Tính timing cho checkpoint (giây)
     getCheckpointTimings() {
-        const effectiveRaceTime = this.TOTAL_RACE_TIME - this.BUFFER_TIME;
+        // Sử dụng 90% thời gian hiệu dụng để đảm bảo vịt kịp về đích cuối
+        const effectiveRaceTime = (this.TOTAL_RACE_TIME - this.BUFFER_TIME) * 0.9;
         const interval = effectiveRaceTime / (this.TOTAL_CHECKPOINTS + 1);
         const timings = [];
         for (let i = 1; i <= this.TOTAL_CHECKPOINTS; i++) {
@@ -57,8 +58,8 @@ export const GAME_CONFIG = {
     // Podium winners
     WINNER_PODIUM_X: 50,
     WINNER_PODIUM_Y: 20,
-    WINNER_SPACING_X: 70,
-    WINNER_SPACING_Y: 60,
+    WINNER_SPACING_X: 90,
+    WINNER_SPACING_Y: 75,
     WINNER_GRID_COLS: 5,
     
     // Timer
@@ -75,7 +76,7 @@ export const GAME_CONFIG = {
     SLOW_MO_FACTOR: 0.45,
     
     // Checkpoint animation
-    CHECKPOINT_SLIDE_DURATION: 1.5, // giây
+    CHECKPOINT_SLIDE_DURATION: 2.0, // giây (200px / 2s = 100 px/s giống sóng)
     CHECKPOINT_APPEAR_OFFSET: 200, // pixels ngoài màn hình
     
     // Modal
