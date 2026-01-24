@@ -20,19 +20,25 @@ export class CheckpointManager {
     initialize() {
         this.checkpoints = [];
         this.gameTime = 0;
-        const segmentWidth = this.canvasWidth / (this.totalCheckpoints + 1);
         
         // Sử dụng timing từ GAME_CONFIG
         const checkpointTimings = GAME_CONFIG.getCheckpointTimings();
         
+        // Checkpoint 1 ở giữa, các checkpoint sau cách đều nhau đến gần cạnh phải
+        const centerX = this.canvasWidth / 2;
+        const rightEdge = this.canvasWidth - GAME_CONFIG.FINISH_LINE_OFFSET;
+        const spacing = (rightEdge - centerX) / (this.totalCheckpoints - 1);
+        
         for (let i = 0; i < this.totalCheckpoints; i++) {
-            const targetX = segmentWidth * (i + 1) + GAME_CONFIG.START_LINE_X;
             const scheduledTime = checkpointTimings[i];
+            
+            // Checkpoint đầu ở giữa, các checkpoint sau cách đều nhau
+            const targetX = centerX + (spacing * i);
             
             this.checkpoints.push({
                 index: i,
                 targetX: targetX,
-                currentX: this.canvasWidth + GAME_CONFIG.CHECKPOINT_APPEAR_OFFSET,
+                currentX: this.canvasWidth + GAME_CONFIG.CHECKPOINT_APPEAR_OFFSET, // Bắt đầu từ phải
                 visible: false,
                 animating: false,
                 animationProgress: 0,
@@ -81,7 +87,7 @@ export class CheckpointManager {
         
         // Update animations
         for (const checkpoint of this.checkpoints) {
-            // Slide in animation
+            // Slide in animation (từ phải màn hình vào giữa)
             if (checkpoint.animating && !checkpoint.slidingOut) {
                 checkpoint.animationProgress += deltaTime / GAME_CONFIG.CHECKPOINT_SLIDE_DURATION;
                 

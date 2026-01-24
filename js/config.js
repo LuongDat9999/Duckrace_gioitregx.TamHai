@@ -25,24 +25,25 @@ export const GAME_CONFIG = {
     
     // Tính tốc độ tối ưu cho vịt (pixels/giây)
     // Vịt nhanh nhất cần về đích cuối vào TOTAL_RACE_TIME - BUFFER_TIME
+    // Tăng hệ số để vịt chạy nhanh hơn, đảm bảo kịp đến checkpoint cuối
     calculateOptimalSpeed(raceDistance) {
         const effectiveRaceTime = this.TOTAL_RACE_TIME - this.BUFFER_TIME;
         const baseSpeed = raceDistance / effectiveRaceTime;
         return {
-            winnerSpeed: baseSpeed * 1.0, // vịt chiến thắng
-            averageSpeed: baseSpeed * 0.85, // vịt trung bình
-            slowSpeed: baseSpeed * 0.70 // vịt chậm
+            winnerSpeed: baseSpeed * 1.3, // tăng từ 1.0 → 1.3 (nhanh hơn 30%)
+            averageSpeed: baseSpeed * 1.1, // tăng từ 0.85 → 1.1
+            slowSpeed: baseSpeed * 0.85 // tăng từ 0.70 → 0.85
         };
     },
     
     // Tính timing cho checkpoint (giây)
+    // Công thức: khoảng cách thời gian = (thời gian * 0.45) / số lượng checkpoint
+    // Giảm xuống 0.45 để vịt có đủ thời gian đến checkpoint cuối
     getCheckpointTimings() {
-        // Sử dụng 90% thời gian hiệu dụng để đảm bảo vịt kịp về đích cuối
-        const effectiveRaceTime = (this.TOTAL_RACE_TIME - this.BUFFER_TIME) * 0.9;
-        const interval = effectiveRaceTime / (this.TOTAL_CHECKPOINTS + 1);
+        const intervalTime = (this.TOTAL_RACE_TIME * 0.45) / this.TOTAL_CHECKPOINTS;
         const timings = [];
         for (let i = 1; i <= this.TOTAL_CHECKPOINTS; i++) {
-            timings.push(interval * i);
+            timings.push(intervalTime * i);
         }
         return timings;
     },

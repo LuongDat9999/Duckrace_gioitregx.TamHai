@@ -95,15 +95,6 @@ export class GameEngine {
                 return;
             }
         }
-        
-        // Check start button
-        if (this.gameState.isIdle() && this.startButtonBounds) {
-            const bounds = this.startButtonBounds;
-            if (x >= bounds.x && x <= bounds.x + bounds.width &&
-                y >= bounds.y && y <= bounds.y + bounds.height) {
-                this.start();
-            }
-        }
     }
 
     #handleCanvasMouseMove(e) {
@@ -120,23 +111,7 @@ export class GameEngine {
             return;
         }
         
-        // Check start button hover
-        if (this.gameState.isIdle() && this.startButtonBounds) {
-            const bounds = this.startButtonBounds;
-            
-            const wasHovered = this.startButtonHovered;
-            const isHovered = x >= bounds.x && x <= bounds.x + bounds.width &&
-                             y >= bounds.y && y <= bounds.y + bounds.height;
-            
-            this.startButtonHovered = isHovered;
-            this.canvas.style.cursor = isHovered ? 'pointer' : 'default';
-            
-            if (wasHovered !== isHovered) {
-                this.render();
-            }
-        } else {
-            this.canvas.style.cursor = 'default';
-        }
+        this.canvas.style.cursor = 'default';
     }
 
     initDucks(count = GAME_CONFIG.TOTAL_DUCKS) {
@@ -144,17 +119,24 @@ export class GameEngine {
         const lanes = this.#buildLanePositions(count);
         this.#shuffle(lanes);
 
+        // Tạo mảng thứ tự vịt và shuffle để phân bố tốc độ ngẫu nhiên
+        const duckIndices = Array.from({ length: count }, (_, i) => i);
+        this.#shuffle(duckIndices);
+
         // Tính khoảng cách đua và tốc độ tối ưu
         const raceDistance = LAYOUT.finishLineX - LAYOUT.startLineX;
         const speeds = GAME_CONFIG.calculateOptimalSpeed(raceDistance);
 
         for (let i = 0; i < count; i++) {
-            // Phân bố tốc độ: 20 vịt nhanh nhất, 60% trung bình, còn lại chậm
+            // Phân bố tốc độ: 20 vịt nhanh nhất, 40% trung bình, còn lại chậm
+            // Dùng thứ tự đã shuffle để random công bằng
             let speed;
-            if (i < 20) {
+            const shuffledIndex = duckIndices[i];
+            
+            if (shuffledIndex < 20) {
                 // Top 20: winner speed với variation nhỏ
                 speed = speeds.winnerSpeed * (0.95 + Math.random() * 0.10);
-            } else if (i < count * 0.4) {
+            } else if (shuffledIndex < count * 0.4) {
                 // 40% tiếp theo: average speed
                 speed = speeds.averageSpeed * (0.90 + Math.random() * 0.20);
             } else {
@@ -377,11 +359,6 @@ export class GameEngine {
         if (this.gameState.isCountdown()) {
             const number = this.gameState.getCountdownNumber();
             this.uiRenderer.drawCountdown(number);
-        }
-
-        // Draw start button
-        if (this.gameState.isIdle()) {
-            this.startButtonBounds = this.uiRenderer.drawStartButton(this.startButtonHovered);
         }
         
         // Draw winners modal

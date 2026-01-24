@@ -53,7 +53,7 @@ function startRaceFromUI() {
     const winnersPerZone = parseInputInt(winnersPerZoneInput, 5, 1, 10);
     const finishZones = parseInputInt(finishZonesInput, 4, 1, 5);
 
-    // Configure game
+    // Configure game TRƯỚC khi reset và init
     game.configure({
         totalDucks,
         totalCheckpoints: finishZones,
@@ -61,9 +61,14 @@ function startRaceFromUI() {
         totalRaceTime
     });
 
-    // Reset and initialize
+    // Reset và initialize
     game.reset();
     game.initDucks(totalDucks);
+    
+    // Render lại để cập nhật nút bắt đầu với thời gian mới
+    game.render();
+    
+    // Start game
     game.start();
 }
 

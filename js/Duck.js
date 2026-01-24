@@ -58,21 +58,29 @@ export class Duck {
         this.lerpT = 0;
         
         // Chiến thuật ẩn của vịt với phân bố có kiểm soát
+        // Tăng LATE_BOOSTER để kịch tính hơn, giảm EARLY_LEADER
         const strategies = [
             Duck.STRATEGIES.EARLY_LEADER,
             Duck.STRATEGIES.LATE_BOOSTER,
             Duck.STRATEGIES.STEADY_RUNNER,
             Duck.STRATEGIES.CHAOTIC
         ];
-        const weights = [0.25, 0.25, 0.35, 0.15];
+        const weights = [0.15, 0.40, 0.30, 0.15];
         this.strategy = this.#selectStrategy(strategies, weights);
         
         // Các tham số riêng cho chiến thuật chaotic
         this.chaoticPhase = Math.random() * Math.PI * 2;
         this.chaoticFrequency = 2 + Math.random() * 3;
         
-        // Tốc độ cơ sở riêng cho mỗi vịt
-        this.personalSpeedFactor = 0.92 + Math.random() * 0.16;
+        // Tốc độ cơ sở riêng cho mỗi vịt (tăng biên độ để đa dạng hơn)
+        this.personalSpeedFactor = 0.88 + Math.random() * 0.24;
+        
+        // Yếu tố may mắn và micro-events
+        this.luckFactor = 0.97 + Math.random() * 0.06; // 0.97-1.03
+        this.nextMicroBurstTime = Math.random() * 5; // thời gian đến micro-event đầu tiên
+        this.microBurstActive = false;
+        this.microBurstDuration = 0;
+        this.microBurstMultiplier = 1.0;
         
         // Khoảng cách tới đích
         this.finishDistance = 1000;
@@ -94,9 +102,30 @@ export class Duck {
             const distanceTraveled = this.x - this.startPosition;
             const progress = Math.max(0, Math.min(1, distanceTraveled / totalDistance));
             
+            // Micro-burst events (bứt tốc/chậm lại ngẫu nhiên)
+            this.nextMicroBurstTime -= deltaTime;
+            if (this.nextMicroBurstTime <= 0 && !this.microBurstActive) {
+                // Kích hoạt micro-event
+                this.microBurstActive = true;
+                this.microBurstDuration = 0.8 + Math.random() * 1.2; // 0.8-2.0 giây
+                // 60% boost, 40% slow
+                const isBoost = Math.random() < 0.6;
+                this.microBurstMultiplier = isBoost ? (1.15 + Math.random() * 0.25) : (0.85 - Math.random() * 0.15);
+            }
+            
+            if (this.microBurstActive) {
+                this.microBurstDuration -= deltaTime;
+                if (this.microBurstDuration <= 0) {
+                    this.microBurstActive = false;
+                    this.microBurstMultiplier = 1.0;
+                    this.nextMicroBurstTime = 3 + Math.random() * 5; // 3-8 giây đến event tiếp theo
+                }
+            }
+            
             const strategyMultiplier = this.#calculateStrategyMultiplier(progress);
             
-            this.speed = this.baseSpeed * this.personalSpeedFactor * strategyMultiplier;
+            // Tính tốc độ cuối cùng với tất cả các yếu tố
+            this.speed = this.baseSpeed * this.personalSpeedFactor * strategyMultiplier * this.luckFactor * this.microBurstMultiplier;
             this.speed = this.#clampSpeed(this.speed);
             
             this.x += this.speed * deltaTime;
@@ -206,38 +235,51 @@ export class Duck {
     }
 
     #curveEarlyLeader(p) {
-        if (p < 0.4) {
-            return 1.3 + (0.4 - p) * 0.25;
-        } else if (p < 0.7) {
-            const transProgress = (p - 0.4) / 0.3;
-            return 1.3 - transProgress * 0.35;
+        // Nhanh ở đầu, nhưng kiệt sức mạnh ở cuối (tạo cơ hội comeback)
+        if (p < 0.35) {
+            // Rất nhanh ở đầu
+            return 1.35 + (0.35 - p) * 0.3;
+        } else if (p < 0.65) {
+            // Bắt đầu mệt
+            const transProgress = (p - 0.35) / 0.3;
+            return 1.35 - transProgress * 0.5;
         } else {
-            const endProgress = (p - 0.7) / 0.3;
-            return 0.95 - endProgress * 0.35;
+            // Kiệt sức ở cuối
+            const endProgress = (p - 0.65) / 0.35;
+            return 0.85 - endProgress * 0.25;
         }
     }
 
     #curveLatBooster(p) {
-        if (p < 0.5) {
-            return 0.78 - (0.5 - p) * 0.1;
-        } else if (p < 0.8) {
-            const rampProgress = (p - 0.5) / 0.3;
-            return 0.78 + rampProgress * 0.32;
+        // Chậm ở đầu, nhưng bùng nổ cực mạnh ở cuối (comeback ngoạn mục)
+        if (p < 0.45) {
+            // Rất chậm ở đầu
+            return 0.72 - (0.45 - p) * 0.12;
+        } else if (p < 0.75) {
+            // Bắt đầu tăng tốc
+            const rampProgress = (p - 0.45) / 0.3;
+            return 0.72 + rampProgress * 0.45;
         } else {
-            const boostProgress = (p - 0.8) / 0.2;
-            return 1.1 + boostProgress * 0.4;
+            // Bùng nổ mạnh mẽ ở 25% cuối
+            const boostProgress = (p - 0.75) / 0.25;
+            const boost = boostProgress * boostProgress; // easing để tăng tốc mạnh hơn
+            return 1.17 + boost * 0.55;
         }
     }
 
     #curveSteadyRunner(p) {
-        const oscillation = Math.sin(p * Math.PI * 4) * 0.08;
-        return 0.98 + oscillation;
+        // Chạy đều nhưng có biến động nhẹ, khó đoán hơn
+        const oscillation = Math.sin(p * Math.PI * 5 + this.id * 0.3) * 0.12;
+        const microTrend = Math.sin(p * Math.PI * 2) * 0.05;
+        return 0.98 + oscillation + microTrend;
     }
 
     #curveChaotic(p) {
-        const oscillation = Math.sin(p * Math.PI * 6 + this.id * 0.7) * 0.15;
-        const trend = (Math.sin(p * Math.PI - Math.PI / 2) + 1) * 0.2;
-        return 0.85 + oscillation + trend;
+        // Hoàn toàn khó lường, dao động mạnh
+        const oscillation1 = Math.sin(p * Math.PI * 7 + this.id * 0.7) * 0.18;
+        const oscillation2 = Math.sin(p * Math.PI * 3.5 + this.chaoticPhase) * 0.12;
+        const trend = (Math.sin(p * Math.PI - Math.PI / 2) + 1) * 0.25;
+        return 0.82 + oscillation1 + oscillation2 + trend;
     }
 
     #selectStrategy(strategies, weights) {

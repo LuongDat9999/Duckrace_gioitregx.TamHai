@@ -147,51 +147,6 @@ export class UIRenderer {
         ctx.restore();
     }
 
-    drawStartButton(isHovered = false) {
-        const ctx = this.ctx;
-        const ratio = window.devicePixelRatio || 1;
-        const btnX = (this.canvas.width / ratio) / 2;
-        const btnY = (this.canvas.height / ratio) / 2;
-        const btnWidth = 200;
-        const btnHeight = 60;
-
-        ctx.save();
-        
-        // Shadow
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-        ctx.shadowBlur = isHovered ? 25 : 20;
-        ctx.shadowOffsetY = isHovered ? 6 : 4;
-
-        // Button background
-        ctx.fillStyle = isHovered ? '#2a8fd9' : '#1e73be';
-        ctx.beginPath();
-        ctx.roundRect(btnX - btnWidth / 2, btnY - btnHeight / 2, btnWidth, btnHeight, 10);
-        ctx.fill();
-
-        // Border
-        ctx.strokeStyle = '#c48b3c';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        ctx.shadowBlur = 0;
-
-        // Text
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('BẮT ĐẦU', btnX, btnY);
-        
-        ctx.restore();
-
-        return {
-            x: btnX - btnWidth / 2,
-            y: btnY - btnHeight / 2,
-            width: btnWidth,
-            height: btnHeight
-        };
-    }
-
     drawWinnersModal(winners) {
         const ctx = this.ctx;
         const ratio = window.devicePixelRatio || 1;

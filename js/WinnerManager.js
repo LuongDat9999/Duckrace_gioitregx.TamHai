@@ -90,7 +90,7 @@ export class WinnerManager {
         ctx.fillStyle = '#e60a0aff';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText('CHÚC MỪNG NGƯỜI CHIẾN THẮNG:', GAME_CONFIG.WINNER_PODIUM_X + 100, GAME_CONFIG.WINNER_PODIUM_Y);
+        ctx.fillText('', GAME_CONFIG.WINNER_PODIUM_X + 100, GAME_CONFIG.WINNER_PODIUM_Y);
         
         ctx.restore();
     }
