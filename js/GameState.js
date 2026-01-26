@@ -8,6 +8,7 @@ import { GAME_CONFIG } from './config.js';
 export class GameState {
     constructor() {
         this.state = 'idle'; // 'idle' | 'countdown' | 'racing' | 'finished'
+        this.paused = false; // Trạng thái pause
         this.countdownTimer = GAME_CONFIG.COUNTDOWN_DURATION;
         this.raceTimer = GAME_CONFIG.TOTAL_RACE_TIME;
         this.totalRaceTime = GAME_CONFIG.TOTAL_RACE_TIME;
@@ -29,6 +30,28 @@ export class GameState {
         return this.state === 'finished';
     }
 
+    isPaused() {
+        return this.paused;
+    }
+
+    pause() {
+        if (this.state === 'racing' && !this.paused) {
+            this.paused = true;
+        }
+    }
+
+    resume() {
+        if (this.paused) {
+            this.paused = false;
+        }
+    }
+
+    togglePause() {
+        if (this.state === 'racing') {
+            this.paused = !this.paused;
+        }
+    }
+
     startCountdown() {
         this.state = 'countdown';
         this.countdownTimer = GAME_CONFIG.COUNTDOWN_DURATION;
@@ -46,6 +69,7 @@ export class GameState {
 
     reset() {
         this.state = 'idle';
+        this.paused = false;
         this.countdownTimer = GAME_CONFIG.COUNTDOWN_DURATION;
         this.raceTimer = this.totalRaceTime;
     }

@@ -81,6 +81,20 @@ export class AudioManager {
         }
     }
 
+    pauseBackgroundMusic() {
+        if (this.sounds.bgMusic && !this.sounds.bgMusic.paused) {
+            this.sounds.bgMusic.pause();
+        }
+    }
+
+    resumeBackgroundMusic() {
+        if (this.sounds.bgMusic && this.sounds.bgMusic.paused) {
+            this.sounds.bgMusic.play().catch(e => {
+                console.log('Không thể resume background music:', e);
+            });
+        }
+    }
+
     stopAll() {
         Object.values(this.sounds).forEach(sound => {
             if (sound) {

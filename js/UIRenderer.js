@@ -147,6 +147,34 @@ export class UIRenderer {
         ctx.restore();
     }
 
+    drawPauseOverlay() {
+        const ctx = this.ctx;
+        const ratio = window.devicePixelRatio || 1;
+        const centerX = (this.canvas.width / ratio) / 2;
+        const centerY = (this.canvas.height / ratio) / 2;
+        
+        ctx.save();
+        
+        // Background overlay
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(0, 0, LAYOUT.canvasWidth, LAYOUT.canvasHeight);
+        
+        // Pause icon (triangle bars)
+
+        ctx.fillStyle = '#fff';
+        const barWidth = 20;
+        const barHeight = 80;
+        const gap = 15;
+        
+        // Left bar
+        ctx.fillRect(centerX - gap/2 - barWidth, centerY - barHeight/2, barWidth, barHeight);
+        // Right bar
+        ctx.fillRect(centerX + gap/2, centerY - barHeight/2, barWidth, barHeight);
+
+        
+        ctx.restore();
+    }
+
     drawWinnersModal(winners) {
         const ctx = this.ctx;
         const ratio = window.devicePixelRatio || 1;

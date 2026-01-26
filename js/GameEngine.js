@@ -78,6 +78,17 @@ export class GameEngine {
     #setupEventListeners() {
         this.canvas.addEventListener('click', (e) => this.#handleCanvasClick(e));
         this.canvas.addEventListener('mousemove', (e) => this.#handleCanvasMouseMove(e));
+        
+        // Keyboard shortcuts cho pause
+        window.addEventListener('keydown', (e) => {
+            // Space hoặc P để pause/resume
+            if (e.code === 'Space' || e.key === 'p' || e.key === 'P') {
+                if (this.gameState.isRacing()) {
+                    e.preventDefault(); // Ngăn scroll khi bấm Space
+                    this.togglePause();
+                }
+            }
+        });
     }
 
     #handleCanvasClick(e) {
@@ -194,6 +205,20 @@ export class GameEngine {
         this.running = false;
     }
 
+    togglePause() {
+        this.gameState.togglePause();
+        
+        if (this.gameState.isPaused()) {
+            this.audioManager.pauseBackgroundMusic();
+        } else {
+            this.audioManager.resumeBackgroundMusic();
+            // Reset lastTime để tránh jump khi resume
+            this.lastTime = performance.now();
+        }
+        
+        this.render();
+    }
+
     reset() {
         this.stop();
         this.gameState.reset();
@@ -239,6 +264,13 @@ export class GameEngine {
                 this.audioManager.playBackgroundMusic();
             }
             
+            this.render();
+            requestAnimationFrame(this._loop);
+            return;
+        }
+
+        // Nếu đang pause, chỉ render không update
+        if (this.gameState.isPaused()) {
             this.render();
             requestAnimationFrame(this._loop);
             return;
@@ -359,6 +391,11 @@ export class GameEngine {
         if (this.gameState.isCountdown()) {
             const number = this.gameState.getCountdownNumber();
             this.uiRenderer.drawCountdown(number);
+        }
+        
+        // Draw pause overlay
+        if (this.gameState.isPaused()) {
+            this.uiRenderer.drawPauseOverlay();
         }
         
         // Draw winners modal
