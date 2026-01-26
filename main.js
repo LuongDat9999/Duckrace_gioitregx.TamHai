@@ -20,6 +20,9 @@ const finishZonesInput = document.getElementById('finishZones');
 // Initialize Game Engine
 const game = new GameEngine(canvas, ctx);
 
+// Set callback để nút canvas đồng bộ với HTML inputs
+game.onCanvasStartClick = startRaceFromUI;
+
 // Canvas resize handler
 function resizeCanvas() {
     const container = canvas.parentElement;

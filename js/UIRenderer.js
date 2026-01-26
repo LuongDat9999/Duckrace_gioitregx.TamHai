@@ -156,23 +156,74 @@ export class UIRenderer {
         ctx.save();
         
         // Background overlay
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(0, 0, LAYOUT.canvasWidth, LAYOUT.canvasHeight);
         
-        // Pause icon (triangle bars)
-
+        // Pause icon (two vertical bars)
         ctx.fillStyle = '#fff';
         const barWidth = 20;
         const barHeight = 80;
-        const gap = 15;
+        const gap = 20;
+        ctx.fillRect(centerX - gap - barWidth, centerY - barHeight / 2, barWidth, barHeight);
+        ctx.fillRect(centerX + gap, centerY - barHeight / 2, barWidth, barHeight);
         
-        // Left bar
-        ctx.fillRect(centerX - gap/2 - barWidth, centerY - barHeight/2, barWidth, barHeight);
-        // Right bar
-        ctx.fillRect(centerX + gap/2, centerY - barHeight/2, barWidth, barHeight);
-
+        // Text
+        ctx.font = 'bold 36px Arial';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('TẠM DỬNG', centerX, centerY + 80);
+        
+        ctx.font = '20px Arial';
+        ctx.fillStyle = '#ddd';
+        ctx.fillText('Bấm SPACE hoặc P để tiếp tục', centerX, centerY + 120);
         
         ctx.restore();
+    }
+
+    drawStartButton(isHovered = false) {
+        const ctx = this.ctx;
+        const ratio = window.devicePixelRatio || 1;
+        const btnX = (this.canvas.width / ratio) / 2;
+        const btnY = (this.canvas.height / ratio) / 2;
+        const btnWidth = 200;
+        const btnHeight = 60;
+
+        ctx.save();
+        
+        // Shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+        ctx.shadowBlur = isHovered ? 25 : 20;
+        ctx.shadowOffsetY = isHovered ? 6 : 4;
+
+        // Button background
+        ctx.fillStyle = isHovered ? '#2a8fd9' : '#1e73be';
+        ctx.beginPath();
+        ctx.roundRect(btnX - btnWidth / 2, btnY - btnHeight / 2, btnWidth, btnHeight, 10);
+        ctx.fill();
+
+        // Border
+        ctx.strokeStyle = '#c48b3c';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+
+        // Text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('BẮT ĐẦU', btnX, btnY);
+        
+        ctx.restore();
+
+        return {
+            x: btnX - btnWidth / 2,
+            y: btnY - btnHeight / 2,
+            width: btnWidth,
+            height: btnHeight
+        };
     }
 
     drawWinnersModal(winners) {
@@ -239,8 +290,8 @@ export class UIRenderer {
             
             // Winner item background
             const itemGradient = ctx.createLinearGradient(x, y, x + itemWidth, y + itemHeight);
-            itemGradient.addColorStop(0, '#f093fb');
-            itemGradient.addColorStop(1, '#f5576c');
+            itemGradient.addColorStop(0, '#f8f8f8ff');
+            itemGradient.addColorStop(1, '#f9f9f9ff');
             ctx.fillStyle = itemGradient;
             ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
             ctx.shadowBlur = 10;
@@ -250,12 +301,12 @@ export class UIRenderer {
             ctx.shadowBlur = 0;
             
             // Winner number
-            ctx.fillStyle = '#FFD700';
+            ctx.fillStyle = '#000000ff';
             ctx.font = 'bold 40px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.lineWidth = 3;
-            ctx.strokeText(winner.id.toString(), x + itemWidth / 2, y + itemHeight / 2 - 10);
+            
             ctx.fillText(winner.id.toString(), x + itemWidth / 2, y + itemHeight / 2 - 10);
             
             // Winner nam

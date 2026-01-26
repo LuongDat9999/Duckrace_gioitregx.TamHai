@@ -82,6 +82,12 @@ export class Duck {
         this.microBurstDuration = 0;
         this.microBurstMultiplier = 1.0;
         
+        // Yếu tố mới cho DRAMA
+        this.stamina = 0.8 + Math.random() * 0.4; // 0.8-1.2: thể lực (vịt nhanh có thể kiệt sức)
+        this.finalSprintPower = Math.random(); // 0-1: sức bứt phá cuối
+        this.positionRank = 0; // Vị trí thứ hạng hiện tại (cập nhật từ ngoài)
+        this.hadFinalBurst = false; // Đã dùng final burst chưa
+        
         // Khoảng cách tới đích
         this.finishDistance = 1000;
         this.startPosition = x;
@@ -103,14 +109,18 @@ export class Duck {
             const progress = Math.max(0, Math.min(1, distanceTraveled / totalDistance));
             
             // Micro-burst events (bứt tốc/chậm lại ngẫu nhiên)
+            // Tăng tần suất và cường độ ở 80% cuối
+            const burstIntensity = progress > 0.8 ? 1.5 : 1.0;
             this.nextMicroBurstTime -= deltaTime;
             if (this.nextMicroBurstTime <= 0 && !this.microBurstActive) {
                 // Kích hoạt micro-event
                 this.microBurstActive = true;
                 this.microBurstDuration = 0.8 + Math.random() * 1.2; // 0.8-2.0 giây
-                // 60% boost, 40% slow
-                const isBoost = Math.random() < 0.6;
-                this.microBurstMultiplier = isBoost ? (1.15 + Math.random() * 0.25) : (0.85 - Math.random() * 0.15);
+                // Tăng biên độ và tỉ lệ boost ở cuối đua
+                const boostChance = progress > 0.8 ? 0.7 : 0.6;
+                const isBoost = Math.random() < boostChance;
+                const burstRange = isBoost ? (1.2 + Math.random() * 0.4) : (0.75 - Math.random() * 0.25);
+                this.microBurstMultiplier = burstRange * burstIntensity;
             }
             
             if (this.microBurstActive) {
@@ -118,14 +128,57 @@ export class Duck {
                 if (this.microBurstDuration <= 0) {
                     this.microBurstActive = false;
                     this.microBurstMultiplier = 1.0;
-                    this.nextMicroBurstTime = 3 + Math.random() * 5; // 3-8 giây đến event tiếp theo
+                    // Giảm thời gian chờ ở cuối đua để tăng tần suất events
+                    const nextInterval = progress > 0.8 ? (2 + Math.random() * 3) : (3 + Math.random() * 5);
+                    this.nextMicroBurstTime = nextInterval;
+                }
+            }
+            
+            // Final Chaos Zone (90-100%): drama cực đại!
+            let finalChaosMultiplier = 1.0;
+            if (progress > 0.9 && !this.hadFinalBurst) {
+                // 40% cư vịt bất kỳ có thể bứt phá hoặc sụp đổ (tăng từ 30%)
+                if (Math.random() < 0.4) {
+                    this.hadFinalBurst = true;
+                    // Vịt có finalSprintPower cao sẽ bùng nổ, thấp sẽ kiệt sức
+                    if (this.finalSprintPower > 0.65) {
+                        // Nếu là vịt cuối bảng (>120): MIRACLE ULTRA BOOST!
+                        if (this.positionRank > 120) {
+                            finalChaosMultiplier = 2.5 + Math.random() * 1.0; // 2.5-3.5x!
+                        } else {
+                            finalChaosMultiplier = 1.8 + Math.random() * 0.5; // 1.8-2.3x
+                        }
+                    } else if (this.finalSprintPower < 0.3) {
+                        finalChaosMultiplier = 0.4 + Math.random() * 0.2; // EXHAUSTION!
+                    }
+                }
+            }
+            
+            // Position Pressure: vịt dẫn đầu chịu áp lực, vịt sau thoải mái hơn
+            let positionPressure = 1.0;
+            if (this.positionRank <= 5 && progress > 0.7) {
+                // Top 5 chịu áp lực ở 70% cuối
+                positionPressure = 0.95 - (this.positionRank * 0.02); // Top 1: 0.95, Top 5: 0.87
+            } else if (this.positionRank > 100 && progress > 0.75) {
+                // Vịt cuối bảng (>100) có "underdog boost" cực mạnh!
+                const underdogBoost = Math.min((this.positionRank - 100) / 80, 1.0); // 0-1 từ rank 100-180
+                if (progress > 0.9) {
+                    // ở 90% cuối: boost cực mạnh
+                    positionPressure = 1.3 + underdogBoost * 0.7; // 1.3-2.0x!
+                } else if (progress > 0.85) {
+                    // ở 85% cuối: boost mạnh
+                    positionPressure = 1.2 + underdogBoost * 0.5; // 1.2-1.7x
+                } else {
+                    // ở 75% cuối: boost vừa
+                    positionPressure = 1.1 + underdogBoost * 0.3; // 1.1-1.4x
                 }
             }
             
             const strategyMultiplier = this.#calculateStrategyMultiplier(progress);
             
-            // Tính tốc độ cuối cùng với tất cả các yếu tố
-            this.speed = this.baseSpeed * this.personalSpeedFactor * strategyMultiplier * this.luckFactor * this.microBurstMultiplier;
+            // Tính tốc độ cuối cùng với TẤT CẢ các yếu tố
+            this.speed = this.baseSpeed * this.personalSpeedFactor * strategyMultiplier * 
+                        this.luckFactor * this.microBurstMultiplier * finalChaosMultiplier * positionPressure;
             this.speed = this.#clampSpeed(this.speed);
             
             this.x += this.speed * deltaTime;
@@ -235,35 +288,48 @@ export class Duck {
     }
 
     #curveEarlyLeader(p) {
-        // Nhanh ở đầu, nhưng kiệt sức mạnh ở cuối (tạo cơ hội comeback)
+        // Nhanh ở đầu, nhưng kiệt sức CỰC MẠNH ở cuối (drama!)
         if (p < 0.35) {
-            // Rất nhanh ở đầu
-            return 1.35 + (0.35 - p) * 0.3;
+            // Siêu nhanh ở đầu
+            return 1.4 + (0.35 - p) * 0.35;
         } else if (p < 0.65) {
             // Bắt đầu mệt
             const transProgress = (p - 0.35) / 0.3;
-            return 1.35 - transProgress * 0.5;
+            return 1.4 - transProgress * 0.6;
+        } else if (p < 0.9) {
+            // Kiệt sức dần
+            const midProgress = (p - 0.65) / 0.25;
+            return 0.8 - midProgress * 0.3;
         } else {
-            // Kiệt sức ở cuối
-            const endProgress = (p - 0.65) / 0.35;
-            return 0.85 - endProgress * 0.25;
+            // SỤP ĐỔ hoàn toàn ở 10% cuối!
+            const finalProgress = (p - 0.9) / 0.1;
+            return 0.5 - finalProgress * 0.25; // Xuống còn 0.25x!
         }
     }
 
     #curveLatBooster(p) {
-        // Chậm ở đầu, nhưng bùng nổ cực mạnh ở cuối (comeback ngoạn mục)
+        // Chậm ở đầu, nhưng bùng nổ KHỦNG KHIẾP ở cuối (miracle!)
         if (p < 0.45) {
             // Rất chậm ở đầu
-            return 0.72 - (0.45 - p) * 0.12;
-        } else if (p < 0.75) {
+            return 0.55 - (0.45 - p) * 0.18;
+        } else if (p < 0.7) {
+            // Vẫn còn chậm
+            const rampProgress = (p - 0.45) / 0.25;
+            return 0.55 + rampProgress * 0.5;
+        } else if (p < 0.85) {
             // Bắt đầu tăng tốc
-            const rampProgress = (p - 0.45) / 0.3;
-            return 0.72 + rampProgress * 0.45;
+            const boostProgress = (p - 0.7) / 0.15;
+            return 1.05 + boostProgress * 0.8;
+        } else if (p < 0.95) {
+            // Bùng nổ mạnh
+            const superBoostProgress = (p - 0.85) / 0.1;
+            const boost = superBoostProgress * superBoostProgress;
+            return 1.85 + boost * 1.5; // Lên tới 3.35x
         } else {
-            // Bùng nổ mạnh mẽ ở 25% cuối
-            const boostProgress = (p - 0.75) / 0.25;
-            const boost = boostProgress * boostProgress; // easing để tăng tốc mạnh hơn
-            return 1.17 + boost * 0.55;
+            // SIÊU BÚNG NỔ ở 5% cuối - TĂNG GẤP 4-5 LẦN!
+            const finalProgress = (p - 0.95) / 0.05;
+            const ultraBoost = finalProgress * finalProgress * finalProgress;
+            return 3.35 + ultraBoost * 1.65; // Từ 3.35x lên 5.0x!
         }
     }
 

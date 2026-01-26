@@ -105,6 +105,32 @@ export class GameEngine {
                 this.reset();
                 return;
             }
+        }        
+        // Check start button - gọi callback để đồng bộ với HTML inputs
+        if (this.gameState.isIdle() && this.startButtonBounds) {
+            const bounds = this.startButtonBounds;
+            if (x >= bounds.x && x <= bounds.x + bounds.width &&
+                y >= bounds.y && y <= bounds.y + bounds.height) {
+                // Gọi callback để đọc và apply giá trị từ HTML
+                if (this.onCanvasStartClick) {
+                    this.onCanvasStartClick();
+                } else {
+                    this.start();
+                }
+            }
+        }        
+        // Check start button - gọi callback để đồng bộ với HTML inputs
+        if (this.gameState.isIdle() && this.startButtonBounds) {
+            const bounds = this.startButtonBounds;
+            if (x >= bounds.x && x <= bounds.x + bounds.width &&
+                y >= bounds.y && y <= bounds.y + bounds.height) {
+                // Gọi callback để đọc và apply giá trị từ HTML
+                if (this.onCanvasStartClick) {
+                    this.onCanvasStartClick();
+                } else {
+                    this.start();
+                }
+            }
         }
     }
 
@@ -122,7 +148,23 @@ export class GameEngine {
             return;
         }
         
-        this.canvas.style.cursor = 'default';
+        // Check start button hover
+        if (this.gameState.isIdle() && this.startButtonBounds) {
+            const bounds = this.startButtonBounds;
+            
+            const wasHovered = this.startButtonHovered;
+            const isHovered = x >= bounds.x && x <= bounds.x + bounds.width &&
+                             y >= bounds.y && y <= bounds.y + bounds.height;
+            
+            this.startButtonHovered = isHovered;
+            this.canvas.style.cursor = isHovered ? 'pointer' : 'default';
+            
+            if (wasHovered !== isHovered) {
+                this.render();
+            }
+        } else {
+            this.canvas.style.cursor = 'default';
+        }
     }
 
     initDucks(count = GAME_CONFIG.TOTAL_DUCKS) {
@@ -305,6 +347,13 @@ export class GameEngine {
         this.waveLayers.update(delta);
         this.checkpointManager.update(delta);
 
+        // Cập nhật position rank cho mỗi vịt (để tính position pressure)
+        const racingDucks = this.ducks.filter(d => d.state === 'racing');
+        const sortedByPosition = [...racingDucks].sort((a, b) => b.x - a.x);
+        sortedByPosition.forEach((duck, index) => {
+            duck.positionRank = index + 1;
+        });
+
         // Update ducks
         for (const duck of this.ducks) {
             duck.update(delta, LAYOUT.canvasWidth);
@@ -391,6 +440,11 @@ export class GameEngine {
         if (this.gameState.isCountdown()) {
             const number = this.gameState.getCountdownNumber();
             this.uiRenderer.drawCountdown(number);
+        }
+        
+        // Draw start button
+        if (this.gameState.isIdle()) {
+            this.startButtonBounds = this.uiRenderer.drawStartButton(this.startButtonHovered);
         }
         
         // Draw pause overlay

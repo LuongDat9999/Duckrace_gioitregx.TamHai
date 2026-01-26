@@ -94,9 +94,6 @@ duck-race-game/
 - ✅ Modal responsive
 - ✅ Checkpoint có label rõ ràng
 
-## File backup
-- `main_old.js`: File main.js gốc (backup)
-- `style.css`: File CSS gốc (vẫn giữ ở root, copy sang css/)
 
 ## Browser support
 - Chrome, Firefox, Safari, Edge (modern browsers)
