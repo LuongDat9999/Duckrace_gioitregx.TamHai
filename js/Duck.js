@@ -36,7 +36,7 @@ export class Duck {
         CHAOTIC: 'chaotic'
     };
 
-    constructor({ id, name, x = 0, y = 0, speed = 120, minSpeed = 80, maxSpeed = 200, finishedStage = false, isWinner = false }) {
+    constructor({ id, name, x = 0, y = 0, speed = 120, minSpeed = 80, maxSpeed = 200, finishedStage = false, isWinner = false, winnerRank = null }) {
         this.id = id;
         this.name = name;
         this.x = x;
@@ -47,6 +47,7 @@ export class Duck {
         this.speed = this.#clampSpeed(speed);
         this.finishedStage = finishedStage;
         this.isWinner = isWinner;
+        this.winnerRank = winnerRank; // Thứ tự về đích (0 = sớm nhất, null = không phải winner)
         this.radius = GAME_CONFIG.DUCK_RADIUS;
         this.wobblePhase = Math.random() * Math.PI * 2;
         this.wobbleSpeed = 2 + Math.random() * 1.2;
@@ -91,6 +92,11 @@ export class Duck {
         // Khoảng cách tới đích
         this.finishDistance = 1000;
         this.startPosition = x;
+        
+        // ===== BOOST LOGIC =====
+        this.shouldBoost = false; // Được set từ GameEngine khi gần checkpoint
+        this.boostMultiplier = 1; // Hệ số boost (mặc định 1, có thể lên 10)
+        this.shouldSlowDown = false; // Được set từ GameEngine cho non-winners gần checkpoint
     }
 
     setStageSpeed(remainingDistance, stageDuration, variation = 0.12) {
@@ -137,7 +143,7 @@ export class Duck {
             // Final Chaos Zone (90-100%): drama cực đại!
             let finalChaosMultiplier = 1.0;
             if (progress > 0.9 && !this.hadFinalBurst) {
-                // 40% cư vịt bất kỳ có thể bứt phá hoặc sụp đổ (tăng từ 30%)
+                // 40% cơ vịt bất kỳ có thể bứt phá hoặc sụp đổ (tăng từ 30%)
                 if (Math.random() < 0.4) {
                     this.hadFinalBurst = true;
                     // Vịt có finalSprintPower cao sẽ bùng nổ, thấp sẽ kiệt sức
@@ -176,11 +182,22 @@ export class Duck {
             
             const strategyMultiplier = this.#calculateStrategyMultiplier(progress);
             
-            // Tính tốc độ cuối cùng với TẤT CẢ các yếu tố
-            this.speed = this.baseSpeed * this.personalSpeedFactor * strategyMultiplier * 
-                        this.luckFactor * this.microBurstMultiplier * finalChaosMultiplier * positionPressure;
-            this.speed = this.#clampSpeed(this.speed);
+            // ===== TÍNH TỐC ĐỘ CUỐI CÙNG =====
+            // Nếu có WINNER BOOST (gần checkpoint), ưu tiên boost này
+            if (this.shouldBoost && this.boostMultiplier > 1) {
+                // BOOST THAY THẾ: Chỉ dùng baseSpeed * boost, bỏ qua các factor khác
+                // Điều này đảm bảo winners luôn về đích đúng thứ tự
+                this.speed = this.baseSpeed * this.boostMultiplier;
+            } else if (this.shouldSlowDown) {
+                // SLOW DOWN cho non-winners gần checkpoint: giảm xuống 15% tốc độ
+                this.speed = this.baseSpeed * 0.15;
+            } else {
+                // Logic cũ: kết hợp tất cả các yếu tố
+                this.speed = this.baseSpeed * this.personalSpeedFactor * strategyMultiplier * 
+                            this.luckFactor * this.microBurstMultiplier * finalChaosMultiplier * positionPressure;
+            }
             
+            this.speed = this.#clampSpeed(this.speed);
             this.x += this.speed * deltaTime;
 
             if (trackWidth !== undefined && this.x + this.radius >= trackWidth) {

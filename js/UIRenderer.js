@@ -153,31 +153,7 @@ export class UIRenderer {
         const centerX = (this.canvas.width / ratio) / 2;
         const centerY = (this.canvas.height / ratio) / 2;
         
-        ctx.save();
-        
-        // Background overlay
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(0, 0, LAYOUT.canvasWidth, LAYOUT.canvasHeight);
-        
-        // Pause icon (two vertical bars)
-        ctx.fillStyle = '#fff';
-        const barWidth = 20;
-        const barHeight = 80;
-        const gap = 20;
-        ctx.fillRect(centerX - gap - barWidth, centerY - barHeight / 2, barWidth, barHeight);
-        ctx.fillRect(centerX + gap, centerY - barHeight / 2, barWidth, barHeight);
-        
-        // Text
-        ctx.font = 'bold 36px Arial';
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('TẠM DỬNG', centerX, centerY + 80);
-        
-        ctx.font = '20px Arial';
-        ctx.fillStyle = '#ddd';
-        ctx.fillText('Bấm SPACE hoặc P để tiếp tục', centerX, centerY + 120);
-        
+        ctx.save();        
         ctx.restore();
     }
 
