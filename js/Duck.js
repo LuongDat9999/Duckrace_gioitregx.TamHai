@@ -265,7 +265,7 @@ export class Duck {
         ctx.restore();
         
         ctx.save();
-        ctx.font = 'bold 24px Arial';
+        ctx.font = 'bold 29px Arial';  // Tăng 20% từ 24px
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.lineWidth = 3;

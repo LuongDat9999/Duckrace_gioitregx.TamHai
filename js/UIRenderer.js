@@ -111,7 +111,7 @@ export class UIRenderer {
         const ctx = this.ctx;
         ctx.save();
         
-        const logoHeight = 100;
+        const logoHeight = 120;  // Tăng 20% từ 100
         const logoWidth = (logo.width / logo.height) * logoHeight;
         const logoX = 15;
         const logoY = 15;

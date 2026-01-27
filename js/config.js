@@ -57,7 +57,7 @@ export const GAME_CONFIG = {
     FINISH_LINE_OFFSET: 100, // cách lề phải
     
     // Podium winners
-    WINNER_PODIUM_X: 50,
+    WINNER_PODIUM_X: 80,  // Tăng từ 50 sang 80 để tránh logo lớn hơn
     WINNER_PODIUM_Y: 20,
     WINNER_SPACING_X: 90,
     WINNER_SPACING_Y: 75,
@@ -68,9 +68,9 @@ export const GAME_CONFIG = {
     TIMER_Y: 20,
     
     // Duck rendering
-    DUCK_RADIUS: 18,
-    DUCK_WIDTH: 110,
-    DUCK_HEIGHT: 90,
+    DUCK_RADIUS: 21.6,  // Tăng 20% từ 18
+    DUCK_WIDTH: 132,    // Tăng 20% từ 110
+    DUCK_HEIGHT: 108,   // Tăng 20% từ 90
     
     // Animation
     SLOW_MO_DURATION: 0.6,
