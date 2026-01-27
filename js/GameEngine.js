@@ -390,66 +390,74 @@ export class GameEngine {
             const finishedAtThisCheckpoint = currentCheckpoint.winners.length;
             const remainingSlots = GAME_CONFIG.WINNERS_PER_CHECKPOINT - finishedAtThisCheckpoint;
             
-            // Reset boost state khi chuyển sang checkpoint mới
-            if (this.checkpointBoostState.currentCheckpointIndex !== currentCheckpoint.index) {
-                this.checkpointBoostState.started = false;
-                this.checkpointBoostState.timer = 0;
-                this.checkpointBoostState.nextBoostIndex = 0;
-                this.checkpointBoostState.currentCheckpointIndex = currentCheckpoint.index;
-            }
+            // ===== CHECKPOINT GIỮA: THI ĐẤU HOÀN TOÀN CÔNG BẰNG =====
+            const middleCheckpointIndex = Math.floor(GAME_CONFIG.TOTAL_CHECKPOINTS / 2);
+            const isMiddleCheckpoint = currentCheckpoint.index === middleCheckpointIndex;
             
-            if (remainingSlots > 0) {
-                // Lọc winners chưa về đích và đang racing
-                const activeWinners = racingDucks.filter(d => d.isWinner);
-                activeWinners.sort((a, b) => a.winnerRank - b.winnerRank);
-                const nextWinners = activeWinners.slice(0, remainingSlots);
+            // Nếu KHÔNG phải checkpoint giữa, áp dụng boost system
+            if (!isMiddleCheckpoint) {
+                // Reset boost state khi chuyển sang checkpoint mới
+                if (this.checkpointBoostState.currentCheckpointIndex !== currentCheckpoint.index) {
+                    this.checkpointBoostState.started = false;
+                    this.checkpointBoostState.timer = 0;
+                    this.checkpointBoostState.nextBoostIndex = 0;
+                    this.checkpointBoostState.currentCheckpointIndex = currentCheckpoint.index;
+                }
                 
-                if (nextWinners.length > 0) {
-                    // Tìm vịt đầu tiên (bất kỳ ai) gần checkpoint nhất
-                    const closestAnyDuck = racingDucks.reduce((closest, duck) => {
-                        const dist = checkpointX - duck.x;
-                        const closestDist = checkpointX - closest.x;
-                        return dist < closestDist ? duck : closest;
-                    });
+                if (remainingSlots > 0) {
+                    // Lọc winners chưa về đích và đang racing
+                    const activeWinners = racingDucks.filter(d => d.isWinner);
+                    activeWinners.sort((a, b) => a.winnerRank - b.winnerRank);
+                    const nextWinners = activeWinners.slice(0, remainingSlots);
                     
-                    const closestDistance = checkpointX - closestAnyDuck.x;
-                    
-                    // TRIGGER: Khi có vịt bất kỳ gần đích 100px, bắt đầu boost sequence
-                    if (closestDistance <= 100 && !this.checkpointBoostState.started) {
-                        this.checkpointBoostState.started = true;
-                        this.checkpointBoostState.timer = 0;
-                        this.checkpointBoostState.nextBoostIndex = 0;
-                        // Random delay 0.5-1s
-                        this.checkpointBoostState.boostDelay = 0.5 + Math.random() * 0.5;
-                    }
-                    
-                    // Nếu đã bắt đầu boost sequence
-                    if (this.checkpointBoostState.started) {
-                        // Giảm tốc TẤT CẢ non-winners
-                        const winnerIds = new Set(nextWinners.map(w => w.id));
-                        racingDucks.forEach(duck => {
-                            if (!winnerIds.has(duck.id)) {
-                                duck.shouldSlowDown = true;
-                            }
+                    if (nextWinners.length > 0) {
+                        // Tìm vịt đầu tiên (bất kỳ ai) gần checkpoint nhất
+                        const closestAnyDuck = racingDucks.reduce((closest, duck) => {
+                            const dist = checkpointX - duck.x;
+                            const closestDist = checkpointX - closest.x;
+                            return dist < closestDist ? duck : closest;
                         });
                         
-                        // Cập nhật timer
-                        this.checkpointBoostState.timer += realDelta;
+                        const closestDistance = checkpointX - closestAnyDuck.x;
                         
-                        // Boost lần lượt theo thời gian
-                        const numToBoost = Math.min(
-                            Math.floor(this.checkpointBoostState.timer / this.checkpointBoostState.boostDelay),
-                            nextWinners.length
-                        );
+                        // TRIGGER: Khi có vịt bất kỳ gần đích 100px, bắt đầu boost sequence
+                        if (closestDistance <= 100 && !this.checkpointBoostState.started) {
+                            this.checkpointBoostState.started = true;
+                            this.checkpointBoostState.timer = 0;
+                            this.checkpointBoostState.nextBoostIndex = 0;
+                            // Random delay 0.5-1s
+                            this.checkpointBoostState.boostDelay = 0.5 + Math.random() * 0.5;
+                        }
                         
-                        // Boost các winner theo thứ tự
-                        for (let i = 0; i < numToBoost; i++) {
-                            nextWinners[i].shouldBoost = true;
-                            nextWinners[i].boostMultiplier = 15;
+                        // Nếu đã bắt đầu boost sequence
+                        if (this.checkpointBoostState.started) {
+                            // Giảm tốc TẤT CẢ non-winners
+                            const winnerIds = new Set(nextWinners.map(w => w.id));
+                            racingDucks.forEach(duck => {
+                                if (!winnerIds.has(duck.id)) {
+                                    duck.shouldSlowDown = true;
+                                }
+                            });
+                            
+                            // Cập nhật timer
+                            this.checkpointBoostState.timer += realDelta;
+                            
+                            // Boost lần lượt theo thời gian
+                            const numToBoost = Math.min(
+                                Math.floor(this.checkpointBoostState.timer / this.checkpointBoostState.boostDelay),
+                                nextWinners.length
+                            );
+                            
+                            // Boost các winner theo thứ tự
+                            for (let i = 0; i < numToBoost; i++) {
+                                nextWinners[i].shouldBoost = true;
+                                nextWinners[i].boostMultiplier = 15;
+                            }
                         }
                     }
                 }
             }
+            // Nếu là checkpoint giữa: không làm gì cả, để vịt tự do thi đấu!
         }
 
         // Update ducks
@@ -459,10 +467,20 @@ export class GameEngine {
 
         // Check for checkpoint winners
         if (currentCheckpoint && currentCheckpoint.visible) {
-            // Lấy danh sách vịt đang được boost (những vịt ĐÚNG thứ tự cần về đích)
-            const boostedDucks = this.ducks.filter(d => d.shouldBoost && d.boostMultiplier > 1);
+            // Checkpoint giữa: công bằng - ai chạm đích trước thắng
+            const middleCheckpointIndex = Math.floor(GAME_CONFIG.TOTAL_CHECKPOINTS / 2);
+            const isMiddleCheckpoint = currentCheckpoint.index === middleCheckpointIndex;
             
-            for (const duck of boostedDucks) {
+            let ducksToCheck;
+            if (isMiddleCheckpoint) {
+                // Checkpoint giữa: kiểm tra TẤT CẢ vịt đang racing
+                ducksToCheck = this.ducks.filter(d => d.state === 'racing');
+            } else {
+                // Checkpoint thường: chỉ kiểm tra vịt được boost
+                ducksToCheck = this.ducks.filter(d => d.shouldBoost && d.boostMultiplier > 1);
+            }
+            
+            for (const duck of ducksToCheck) {
                 if (duck.state !== 'racing') continue;
                 
                 const duckFront = duck.x + duck.radius;
