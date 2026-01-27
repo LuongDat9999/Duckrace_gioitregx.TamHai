@@ -246,8 +246,8 @@ export class Duck {
         // Vẽ số thứ tự
         const idText = this.id.toString();
         const numDigits = idText.length;
-        const bgWidth = numDigits === 1 ? 16 : 14 + (numDigits - 1) * 9;
-        const bgHeight = 14;
+        const bgWidth = numDigits === 1 ? 22 : 20 + (numDigits - 1) * 11;  // Tăng padding
+        const bgHeight = 18;  // Tăng chiều cao cho padding trên/dưới
         const bgX = -duckW/4;
         const bgY = -duckH/8;
         
