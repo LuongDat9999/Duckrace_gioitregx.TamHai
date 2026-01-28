@@ -70,9 +70,9 @@ export class WaveLayers {
         this.imageLoaded = false;
         
         this.waves = [
-            { offset: 0, scrollSpeed: 120, yRatio: -0.3, scale: 0.5 },
+            { offset: 0, scrollSpeed: 120, yRatio: -0.25, scale: 0.5 },
             { offset: 0, scrollSpeed: 150, yRatio: 0, scale: 1.0 },
-            { offset: 0, scrollSpeed: 100, yRatio: 0.85, scale: 0.9 }
+            { offset: 0, scrollSpeed: 100, yRatio: 0.99, scale: 0.8 }  // Di chuyển xuống cạnh dưới
         ];
 
         this.image.onload = () => {

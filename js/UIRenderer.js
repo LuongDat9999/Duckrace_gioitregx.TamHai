@@ -10,6 +10,57 @@ export class UIRenderer {
     constructor(canvas, ctx) {
         this.canvas = canvas;
         this.ctx = ctx;
+        
+        // Load grass decoration image
+        this.grassImage = new Image();
+        this.grassImage.src = 'img/grass_1.png';
+        this.grassImageLoaded = false;
+        this.grassImage.onload = () => {
+            this.grassImageLoaded = true;
+        };
+        
+        // Load flag decoration image
+        this.flagImage = new Image();
+        this.flagImage.src = 'img/flag.png';
+        this.flagImageLoaded = false;
+        this.flagImage.onload = () => {
+            this.flagImageLoaded = true;
+        };
+        
+        // Grass positions will be generated on first draw
+        this.grassPositions = null;
+    }
+    
+    generateGrassPositions() {
+        const positions = [];
+        const numColumns = 8; // Số cột để phân bố đều theo chiều ngang
+        const numRows = 1; // Số hàng
+        const grassHeight = LAYOUT.grassHeight || this.canvas.height * 0.25;
+        const canvasWidth = this.canvas.width || 1200;
+        
+        // Chữ chiếm khoảng 100px từ trên xuống (2 dòng chữ + khoảng cách)
+        const textHeight = 100;
+        
+        for (let col = 0; col < numColumns; col++) {
+            for (let row = 0; row < numRows; row++) {
+                // Chia đều theo cột, thêm random để không quá đều
+                const colWidth = canvasWidth / numColumns;
+                const x = col * colWidth + Math.random() * colWidth;
+                
+                // Đặt cỏ từ sau chữ (textHeight) đến cuối vùng cỏ
+                const availableHeight = grassHeight - textHeight - 20; // Trừ 20px để tránh sát mép
+                const rowHeight = availableHeight / numRows;
+                const y = textHeight + row * rowHeight + Math.random() * rowHeight;
+                
+                positions.push({
+                    x: x,
+                    y: y,
+                    scale: 0.3 + Math.random() * 0.5, // Scale từ 0.3 đến 0.8
+                    rotation: (Math.random() - 0.5) * 0.4 // Xoay nhẹ
+                });
+            }
+        }
+        return positions;
     }
 
     drawGrassArea() {
@@ -17,6 +68,93 @@ export class UIRenderer {
         ctx.save();
         ctx.fillStyle = '#7CB342';
         ctx.fillRect(0, 0, this.canvas.width, LAYOUT.grassHeight);
+        
+        // Draw grass decorations FIRST (phía dưới)
+        this.drawGrassDecorations();
+        
+        // Draw racing flags (layer giữa)
+        this.drawRacingFlags();
+        
+        // Draw decorative text LAST (phía trên cùng)
+        this.drawCelebrationText();
+        
+        ctx.restore();
+    }
+    
+    drawCelebrationText() {
+        const ctx = this.ctx;
+        ctx.save();
+        
+        // Load custom font (if available, otherwise fallback)
+        const fontSize = 38;
+        ctx.font = `bold ${fontSize}px "BD StreetSign Sans", "Impact", "Arial Black", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        
+        const centerX = this.canvas.width / 2;
+        const line1 = 'MỪNG LỄ THÁNH GIOAN BOSCO';
+        const line2 = 'BỔN MẠNG GIỚI TRẺ GIÁO XỨ TAM HẢI';
+        
+        // Draw black outline
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 5;
+        ctx.strokeText(line1, centerX, 15);
+        ctx.strokeText(line2, centerX, 15 + fontSize + 5);
+        
+        // Draw brown fill
+        ctx.fillStyle = '#8B4513';
+        ctx.fillText(line1, centerX, 15);
+        ctx.fillText(line2, centerX, 15 + fontSize + 5);
+        
+        ctx.restore();
+    }
+    
+    drawGrassDecorations() {
+        if (!this.grassImageLoaded) return;
+        
+        // Generate positions on first draw when LAYOUT is ready
+        if (!this.grassPositions) {
+            this.grassPositions = this.generateGrassPositions();
+        }
+        
+        const ctx = this.ctx;
+        ctx.save();
+        
+        this.grassPositions.forEach(pos => {
+            ctx.save();
+            ctx.translate(pos.x, pos.y);
+            ctx.rotate(pos.rotation);
+            ctx.scale(pos.scale, pos.scale);
+            
+            const w = this.grassImage.width;
+            const h = this.grassImage.height;
+            ctx.drawImage(this.grassImage, -w/2, -h/2, w, h);
+            
+            ctx.restore();
+        });
+        
+        ctx.restore();
+    }
+    
+    drawRacingFlags() {
+        if (!this.flagImageLoaded) return;
+        
+        const ctx = this.ctx;
+        ctx.save();
+        
+        const flagWidth = 300; // Chiều rộng hiển thị của cờ
+        const flagHeight = (this.flagImage.height / this.flagImage.width) * flagWidth;
+        
+        // Vẽ cờ bên trái (di chuyển vào phải thêm)
+        ctx.drawImage(this.flagImage, 150, 10, flagWidth, flagHeight);
+        
+        // Vẽ cờ bên phải (lật ngược, di chuyển vào trái thêm)
+        ctx.save();
+        ctx.translate(this.canvas.width - 150, 10);
+        ctx.scale(-1, 1);
+        ctx.drawImage(this.flagImage, 0, 0, flagWidth, flagHeight);
+        ctx.restore();
+        
         ctx.restore();
     }
 
