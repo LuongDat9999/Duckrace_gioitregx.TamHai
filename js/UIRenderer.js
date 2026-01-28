@@ -33,22 +33,33 @@ export class UIRenderer {
     
     generateGrassPositions() {
         const positions = [];
-        const numColumns = 8; // Số cột để phân bố đều theo chiều ngang
+        // Fixed 3 grass only
+        const numColumns = 3;
         const numRows = 1; // Số hàng
         const grassHeight = LAYOUT.grassHeight || this.canvas.height * 0.25;
         const canvasWidth = this.canvas.width || 1200;
         
-        // Chữ chiếm khoảng 100px từ trên xuống (2 dòng chữ + khoảng cách)
-        const textHeight = 100;
+        // Calculate flag zones to avoid
+        const flagOffsetX = Math.max(80, Math.min(150, canvasWidth * 0.11));
+        const flagWidth = Math.max(150, Math.min(300, canvasWidth * 0.22));
+        const leftFlagZone = flagOffsetX + flagWidth + 50; // Buffer zone
+        const rightFlagZone = canvasWidth - flagOffsetX - flagWidth - 50;
+        
+        // Tính vùng giữa để đặt cỏ
+        const centerZoneWidth = rightFlagZone - leftFlagZone;
+        const centerStart = leftFlagZone;
+        
+        // Chữ chiếm khoảng 130px từ trên xuống (2 dòng chữ + khoảng cách + buffer)
+        const textHeight = 130;
         
         for (let col = 0; col < numColumns; col++) {
             for (let row = 0; row < numRows; row++) {
-                // Chia đều theo cột, thêm random để không quá đều
-                const colWidth = canvasWidth / numColumns;
-                const x = col * colWidth + Math.random() * colWidth;
+                // Chia đều theo cột trong vùng giữa
+                const colWidth = centerZoneWidth / numColumns;
+                const x = centerStart + col * colWidth + Math.random() * colWidth;
                 
                 // Đặt cỏ từ sau chữ (textHeight) đến cuối vùng cỏ
-                const availableHeight = grassHeight - textHeight - 20; // Trừ 20px để tránh sát mép
+                const availableHeight = grassHeight - textHeight - 30; // Trừ 30px để tránh sát mép
                 const rowHeight = availableHeight / numRows;
                 const y = textHeight + row * rowHeight + Math.random() * rowHeight;
                 
@@ -85,19 +96,32 @@ export class UIRenderer {
         const ctx = this.ctx;
         ctx.save();
         
-        // Load custom font (if available, otherwise fallback)
-        const fontSize = 38;
-        ctx.font = `bold ${fontSize}px "BD StreetSign Sans", "Impact", "Arial Black", sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        
         const centerX = this.canvas.width / 2;
         const line1 = 'MỪNG LỄ THÁNH GIOAN BOSCO';
         const line2 = 'BỔN MẠNG GIỚI TRẺ GIÁO XỨ TAM HẢI';
         
+        // Calculate optimal font size that fits both lines
+        let fontSize = Math.max(28, Math.min(60, this.canvas.width * 0.035));
+        const maxWidth = this.canvas.width * 0.85; // 85% của canvas width
+        
+        // Test and adjust font size to fit
+        ctx.font = `bold ${fontSize}px "BD StreetSign Sans", "Impact", "Arial Black", sans-serif`;
+        let line1Width = ctx.measureText(line1).width;
+        let line2Width = ctx.measureText(line2).width;
+        let maxTextWidth = Math.max(line1Width, line2Width);
+        
+        // Scale down if text is too wide
+        if (maxTextWidth > maxWidth) {
+            fontSize = fontSize * (maxWidth / maxTextWidth);
+            ctx.font = `bold ${fontSize}px "BD StreetSign Sans", "Impact", "Arial Black", sans-serif`;
+        }
+        
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        
         // Draw black outline
         ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 5;
+        ctx.lineWidth = Math.max(3, fontSize * 0.13);
         ctx.strokeText(line1, centerX, 15);
         ctx.strokeText(line2, centerX, 15 + fontSize + 5);
         
@@ -142,15 +166,17 @@ export class UIRenderer {
         const ctx = this.ctx;
         ctx.save();
         
-        const flagWidth = 300; // Chiều rộng hiển thị của cờ
+        // Responsive flag size and position based on canvas width
+        const flagWidth = Math.max(150, Math.min(300, this.canvas.width * 0.22));
         const flagHeight = (this.flagImage.height / this.flagImage.width) * flagWidth;
+        const flagOffsetX = Math.max(80, Math.min(150, this.canvas.width * 0.11));
         
         // Vẽ cờ bên trái (di chuyển vào phải thêm)
-        ctx.drawImage(this.flagImage, 150, 10, flagWidth, flagHeight);
+        ctx.drawImage(this.flagImage, flagOffsetX, 10, flagWidth, flagHeight);
         
         // Vẽ cờ bên phải (lật ngược, di chuyển vào trái thêm)
         ctx.save();
-        ctx.translate(this.canvas.width - 150, 10);
+        ctx.translate(this.canvas.width - flagOffsetX, 10);
         ctx.scale(-1, 1);
         ctx.drawImage(this.flagImage, 0, 0, flagWidth, flagHeight);
         ctx.restore();

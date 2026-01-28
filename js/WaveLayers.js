@@ -70,9 +70,10 @@ export class WaveLayers {
         this.imageLoaded = false;
         
         this.waves = [
-            { offset: 0, scrollSpeed: 120, yRatio: -0.25, scale: 0.5 },
+            { offset: 0, scrollSpeed: 120, yRatio: -0.24, scale: 0.5 },
             { offset: 0, scrollSpeed: 150, yRatio: 0, scale: 1.0 },
-            { offset: 0, scrollSpeed: 100, yRatio: 0.99, scale: 0.8 }  // Di chuyển xuống cạnh dưới
+            { offset: 0, scrollSpeed: 100, yRatio: 0.99, scale: 0.8 },  // Di chuyển xuống cạnh dưới
+            { offset: 0, scrollSpeed: 80, yRatio: 1.4, scale: 1.2 }  // Lớp sóng mới ở đáy
         ];
 
         this.image.onload = () => {
@@ -113,7 +114,7 @@ export class WaveLayers {
             
             const y = waterYStart + waterHeight * wave.yRatio;
             
-            const alphas = [0.7, 0.85, 0.6];
+            const alphas = [0.7, 0.85, 0.6, 0.75];
             ctx.globalAlpha = alphas[waveIndex];
             
             const repeatCount = Math.ceil(canvasWidth / waveWidth) + 2;
