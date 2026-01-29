@@ -188,9 +188,10 @@ export class UIRenderer {
         const ctx = this.ctx;
         ctx.save();
         
-        // Solid blue background
+        // Solid blue background - extend beyond waterHeight to cover bottom
         ctx.fillStyle = '#1E88E5';
-        ctx.fillRect(0, LAYOUT.waterYStart, this.canvas.width, LAYOUT.waterHeight);
+        const extraHeight = 200; // Thêm chiều cao để phủ kín đáy
+        ctx.fillRect(0, LAYOUT.waterYStart, this.canvas.width, LAYOUT.waterHeight + extraHeight);
         
         // Scrolling water background if available
         if (waterBg && waterBg.imageLoaded) {

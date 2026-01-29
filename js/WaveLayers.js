@@ -72,8 +72,8 @@ export class WaveLayers {
         this.waves = [
             { offset: 0, scrollSpeed: 120, yRatio: -0.24, scale: 0.5 },
             { offset: 0, scrollSpeed: 150, yRatio: 0, scale: 1.0 },
-            { offset: 0, scrollSpeed: 100, yRatio: 0.99, scale: 0.8 },  // Di chuyển xuống cạnh dưới
-            { offset: 0, scrollSpeed: 80, yRatio: 1.4, scale: 1.2 }  // Lớp sóng mới ở đáy
+            { offset: 0, scrollSpeed: 100, yRatio: 0.85, scale: 0.8 },  // Điều chỉnh lại
+            { offset: 0, scrollSpeed: 80, yRatio: 0.95, scale: 1.5 }  // Lớp sóng lớn ở đáy, không quá xa
         ];
 
         this.image.onload = () => {
@@ -103,16 +103,26 @@ export class WaveLayers {
         
         const originalWidth = this.image.width;
         const originalHeight = this.image.height;
+        const canvasHeight = waterYStart + waterHeight; // Tổng chiều cao canvas
 
         ctx.save();
 
         for (let waveIndex = 0; waveIndex < this.waves.length; waveIndex++) {
             const wave = this.waves[waveIndex];
             
-            const waveHeight = originalHeight * wave.scale;
             const waveWidth = originalWidth * wave.scale;
+            let waveHeight = originalHeight * wave.scale;
+            let y;
             
-            const y = waterYStart + waterHeight * wave.yRatio;
+            // For the bottom wave (index 3), make sure it covers to the bottom
+            if (waveIndex === 3) {
+                // Đặt sóng bắt đầu từ 70% chiều cao vùng nước
+                y = waterYStart + waterHeight * 0.7;
+                // Scale sóng lên lớn hơn nhiều
+                waveHeight = originalHeight * wave.scale * 2;
+            } else {
+                y = waterYStart + waterHeight * wave.yRatio;
+            }
             
             const alphas = [0.7, 0.85, 0.6, 0.75];
             ctx.globalAlpha = alphas[waveIndex];
@@ -131,6 +141,12 @@ export class WaveLayers {
                         waveHeight
                     );
                 }
+            }
+            
+            // Fill phần dưới cùng để đảm bảo không có khoảng trống
+            if (waveIndex === 3) {
+                ctx.fillStyle = 'rgba(30, 136, 229, 0.75)'; // Màu xanh nước với alpha
+                ctx.fillRect(0, y + waveHeight * 0.7, canvasWidth, canvasHeight - (y + waveHeight * 0.7));
             }
         }
 
